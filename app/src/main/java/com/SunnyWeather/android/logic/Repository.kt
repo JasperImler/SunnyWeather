@@ -1,13 +1,44 @@
 package com.SunnyWeather.android.logic
 
 import androidx.lifecycle.liveData
+import com.SunnyWeather.android.logic.dao.PlaceDao
 import com.SunnyWeather.android.logic.model.Place
+import com.SunnyWeather.android.logic.model.Weather
 import com.SunnyWeather.android.logic.network.SunnyWeatherNetWork
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlin.coroutines.CoroutineContext
 
 object Repository {
-    fun searchPlaces(query:String) = liveData(Dispatchers.IO){
-        val  result = try {
+    fun savePlace(place: Place) = PlaceDao.savePlace(place)
+    fun getSavePlace() = PlaceDao.getSavedPlace()
+    fun isPlaceSaved() = PlaceDao.isPlaceSaved()
+    fun refreshWeather(lng:String, lat:String) = fire(Dispatchers.IO) {
+            coroutineScope {
+                val deferredRealtime = async {
+                    SunnyWeatherNetWork.getRealtimeWeather(lng,lat)
+                }
+                val deferredDaily = async {
+                    SunnyWeatherNetWork.getDailyWeather(lng,lat)
+                }
+                val realtimeResponse = deferredRealtime.await()
+                val dailyResponse = deferredDaily.await()
+                if (realtimeResponse.statue == "ok" && dailyResponse.status == "ok"){
+                    val weather = Weather(realtimeResponse.result.realtime,dailyResponse.result.daily)
+                    Result.success(weather)
+                }else{
+                    Result.failure(
+                        RuntimeException(
+                            "realtime response status is ${realtimeResponse.statue}"+
+                                    "daily response is ${dailyResponse.status}"
+                        )
+                    )
+                }
+            }
+    }
+
+    fun searchPlaces(query:String) = fire(Dispatchers.IO){
             val placeResponse = SunnyWeatherNetWork.searchPlaces(query)
             if (placeResponse.status == "OK"){
                 val places = placeResponse.places
@@ -15,9 +46,14 @@ object Repository {
             }else   {
                 Result.failure(RuntimeException("response status is ${placeResponse.status}"))
             }
-        }catch (e:Exception){
-            Result.failure<List<Place>>(e)
-        }
-        emit(result)
     }
+    private fun <T> fire(context: CoroutineContext, block: suspend () -> Result<T>) =
+        liveData<Result<T>>(context) {
+            val result = try {
+                block()
+            } catch (e: Exception) {
+                Result.failure<T>(e)
+            }
+            emit(result)
+        }
 }

@@ -6,7 +6,7 @@ import android.content.Context
 
 class SunnyWeatherApplication:Application() {
     companion object{
-        const val TOKEN = "uYjcEJAykI0e"
+        const val TOKEN = "uYjcEJAykI0eo1MR"
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
     }

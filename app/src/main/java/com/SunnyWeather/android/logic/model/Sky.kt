@@ -1,4 +1,4 @@
-package com.sunnyweather.android.logic.model
+package com.Sunnyweather.android.logic.model
 
 import com.SunnyWeather.android.R
 

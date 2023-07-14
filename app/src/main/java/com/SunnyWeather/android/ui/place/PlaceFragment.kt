@@ -23,9 +23,11 @@ import com.SunnyWeather.android.ui.weather.WeatherActivity
 
 class PlaceFragment:Fragment() {
     private var _binding:FragmentPlaceBinding?= null
+
     private val binding get() = _binding!!
 
     val viewModel by lazy { ViewModelProvider(this).get(PlaceViewModel::class.java) }
+
     private lateinit var adapter: PlaceAdapter
 
     override fun onCreateView(

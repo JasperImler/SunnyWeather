@@ -24,13 +24,13 @@ object Repository {
                 }
                 val realtimeResponse = deferredRealtime.await()
                 val dailyResponse = deferredDaily.await()
-                if (realtimeResponse.statue == "ok" && dailyResponse.status == "ok"){
+                if (realtimeResponse.status == "ok" && dailyResponse.status == "ok"){
                     val weather = Weather(realtimeResponse.result.realtime,dailyResponse.result.daily)
                     Result.success(weather)
                 }else{
                     Result.failure(
                         RuntimeException(
-                            "realtime response status is ${realtimeResponse.statue}"+
+                            "realtime response status is ${realtimeResponse.status}"+
                                     "daily response is ${dailyResponse.status}"
                         )
                     )
@@ -40,7 +40,7 @@ object Repository {
 
     fun searchPlaces(query:String) = fire(Dispatchers.IO){
             val placeResponse = SunnyWeatherNetWork.searchPlaces(query)
-            if (placeResponse.status == "OK"){
+            if (placeResponse.status == "ok"){
                 val places = placeResponse.places
                 Result.success(places)
             }else   {
